@@ -1,0 +1,76 @@
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
+
+local flying = false
+local flySpeed = 50
+local bodyGyro, bodyVelocity
+
+local function startFlying()
+	if not flying then
+		flying = true
+		bodyGyro = Instance.new("BodyGyro")
+		bodyGyro.P = 9e4
+		bodyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+		bodyGyro.cframe = root.CFrame
+		bodyGyro.Parent = root
+
+		bodyVelocity = Instance.new("BodyVelocity")
+		bodyVelocity.velocity = Vector3.new(0, flySpeed, 0)
+		bodyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
+		bodyVelocity.Parent = root
+
+		RunService:BindToRenderStep("Flying", Enum.RenderPriority.Character.Value, function()
+			bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+			bodyVelocity.Velocity = workspace.CurrentCamera.CFrame.LookVector * flySpeed
+		end)
+	end
+end
+
+local function stopFlying()
+	if flying then
+		flying = false
+		if bodyGyro then bodyGyro:Destroy() end
+		if bodyVelocity then bodyVelocity:Destroy() end
+		RunService:UnbindFromRenderStep("Flying")
+	end
+end
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.F then
+		startFlying()
+	end
+end)
+
+UIS.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.F then
+		stopFlying()
+	end
+end)
+
+humanoid.Jumping:Connect(function(isJumping)
+	if UIS.TouchEnabled then
+		startFlying()
+	end
+end)
+
+humanoid.StateChanged:Connect(function(_, newState)
+	if newState == Enum.HumanoidStateType.Freefall or newState == Enum.HumanoidStateType.Jumping then
+		if UIS.TouchEnabled then
+			startFlying()
+		end
+	elseif flying and newState == Enum.HumanoidStateType.Seated then
+		stopFlying()
+	end
+end)
+
+player.CharacterAdded:Connect(function(char)
+	character = char
+	humanoid = character:WaitForChild("Humanoid")
+	root = character:WaitForChild("HumanoidRootPart")
+	stopFlying()
+end)
