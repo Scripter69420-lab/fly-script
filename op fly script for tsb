@@ -9,6 +9,22 @@ local flying = false
 local flySpeed = 50
 local bodyGyro, bodyVelocity
 
+-- Watermark
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "Watermark"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local label = Instance.new("TextLabel")
+label.Text = "made by sk,2tact on discord"
+label.Size = UDim2.new(0, 250, 0, 25)
+label.Position = UDim2.new(0.5, -125, 0, 10)
+label.BackgroundTransparency = 1
+label.TextColor3 = Color3.fromRGB(200, 200, 200)
+label.Font = Enum.Font.Gotham
+label.TextSize = 14
+label.Parent = screenGui
+
 local function startFlying()
 	if not flying then
 		flying = true
